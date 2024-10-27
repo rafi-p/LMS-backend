@@ -6,6 +6,7 @@ import globalRoutes from "./routes/globalRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import connectDB from "./utils/database.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
+import courseRoutes from "./routes/courseRoutes.js";
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use(express.static("public"));
 app.use("/api", globalRoutes);
 app.use("/api", paymentRoutes);
 app.use("/api", authRoutes);
+app.use("/api", courseRoutes);
 
 app.get("/", (req, res) => {
   res.send({ text: "Hello World! tes" });
