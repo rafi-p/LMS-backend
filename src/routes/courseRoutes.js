@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  deleteCourse,
   getCourses,
   postCourse,
   updateCourse,
@@ -28,5 +29,6 @@ courseRoutes.put(
   upload.single("thumbnail"),
   updateCourse
 );
+courseRoutes.delete("/courses/:id", verifyToken, deleteCourse);
 
 export default courseRoutes;
