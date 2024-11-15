@@ -4,6 +4,9 @@ import userModel from "../models/userModel.js";
 import { mutateCourseSchema } from "../utils/schema.js";
 import fs from "fs";
 import path from "path";
+import courseDetailModel from "../models/courseDetailModel.js";
+import { title } from "process";
+import { type } from "os";
 
 export const getCourses = async (req, res) => {
   try {
@@ -38,6 +41,54 @@ export const getCourses = async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
+export const getCategories = async (req, res) => {
+  try {
+    const categories = await categoryModel.find();
+
+    return res.json({
+      message: "Get categories success",
+      data: categories,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
+export const getCourseById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { preview } = req.query;
+    const course = await courseModel
+      .findById(id)
+      .populate({
+        path: "category",
+        select: "name -_id",
+      })
+      .populate({
+        path: "details",
+        select: preview === "true" ? "title type youtubeId text" : "title type",
+      });
+
+    const imageUrl = process.env.APP_URL + "/uploads/courses/";
+
+    return res.json({
+      message: "Get Course detail Success",
+      data: {
+        ...course.toObject(),
+        thumbnail_url: imageUrl + course.thumbnail,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
       message: "Internal server error",
     });
   }
@@ -187,6 +238,89 @@ export const deleteCourse = async (req, res) => {
 
     return res.json({
       message: "Delete Course Success",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
+export const postContentCourse = async (req, res) => {
+  try {
+    const body = req.body;
+    const course = await courseModel.findById(body.courseId);
+    const content = new courseDetailModel({
+      title: body.title,
+      type: body.type,
+      course: course._id,
+      text: body.text,
+      youtubeId: body.youtubeId,
+    });
+
+    await content.save();
+
+    await courseModel.findByIdAndUpdate(
+      course._id,
+      {
+        $push: {
+          details: content._id,
+        },
+      },
+      {
+        new: true,
+      }
+    );
+
+    return res.json({
+      message: "Create Content Success",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
+export const updateContentCourse = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const body = req.body;
+
+    const course = await courseModel.findById(body.courseId);
+
+    await courseDetailModel.findByIdAndUpdate(
+      id,
+      {
+        title: body.title,
+        type: body.type,
+        course: course._id,
+        text: body.text,
+        youtubeId: body.youtubeId,
+      },
+      { new: true }
+    );
+
+    return res.json({
+      message: "Update Content Success",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
+export const deleteContentCourse = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await courseDetailModel.findByIdAndDelete(id);
+
+    return res.json({
+      message: "Delete Content Success",
     });
   } catch (error) {
     console.log(error);

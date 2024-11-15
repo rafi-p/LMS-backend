@@ -1,13 +1,20 @@
 import express from "express";
 import {
+  deleteContentCourse,
   deleteCourse,
+  getCategories,
+  getCourseById,
   getCourses,
+  postContentCourse,
   postCourse,
+  updateContentCourse,
   updateCourse,
 } from "../controllers/courseController.js";
 import { verifyToken } from "../middlewares/verifyToken.js";
 import multer from "multer";
 import { fileStorageCourse, fileFilter } from "../utils/multer.js";
+import { validateRequest } from "../middlewares/validateRequest.js";
+import { mutateContentSchema } from "../utils/schema.js";
 
 const courseRoutes = express.Router();
 
@@ -17,6 +24,8 @@ const upload = multer({
 });
 
 courseRoutes.get("/courses", verifyToken, getCourses);
+courseRoutes.get("/categories", verifyToken, getCategories);
+
 courseRoutes.post(
   "/courses",
   verifyToken,
@@ -30,5 +39,22 @@ courseRoutes.put(
   updateCourse
 );
 courseRoutes.delete("/courses/:id", verifyToken, deleteCourse);
+courseRoutes.get("/courses/:id", verifyToken, getCourseById);
+
+courseRoutes.post(
+  "/courses/contents",
+  verifyToken,
+  validateRequest(mutateContentSchema),
+  postContentCourse
+);
+
+courseRoutes.put(
+  "/courses/contents/:id",
+  verifyToken,
+  validateRequest(mutateContentSchema),
+  updateContentCourse
+);
+
+courseRoutes.delete("/courses/contents/:id", verifyToken, deleteContentCourse);
 
 export default courseRoutes;
